@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Of Cows, Chaos, and the Beauty of Unpredictability</title>
+    
+    <script>
+        MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #FAFAF7;
+            --text-main: #4A3F35;
+            --text-light: #7A6F65;
+            --accent-warm: #D87D4A;
+            --border-color: #E2DCD0;
+            --math-bg: #F4F1EA;
+        }
+        body {
+            font-family: 'Georgia', serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.8;
+            margin: 0;
+            padding: 0;
+        }
+        .blog-container {
+            max-width: 850px;
+            margin: 0 auto;
+            padding: 50px 20px;
+        }
+        h1 {
+            font-family: 'Trebuchet MS', sans-serif;
+            font-size: 2.8em;
+            color: #2C241B;
+            margin-bottom: 10px;
+            line-height: 1.2;
+        }
+        .subtitle {
+            font-style: italic;
+            color: var(--text-light);
+            margin-bottom: 40px;
+            font-size: 1.2em;
+        }
+
+        /* --- SWIPEABLE CAROUSEL STYLES --- */
+        .carousel-wrapper {
+            max-width: 700px;
+            margin: 40px auto;
+            position: relative;
+        }
+        .carousel-track {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scroll-behavior: smooth;
+            -ms-overflow-style: none;  
+            scrollbar-width: none;  
+            border-radius: 12px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            background: #1A1714; 
+        }
+        .carousel-track::-webkit-scrollbar { display: none; } 
+        
+        .carousel-slide {
+            flex: 0 0 100%;
+            scroll-snap-align: start;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            aspect-ratio: 16 / 9;
+            position: relative;
+            overflow: hidden; 
+            padding: 5px; 
+            box-sizing: border-box;
+        }
+        .carousel-slide img, .carousel-slide video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; 
+            border-radius: 8px;
+        }
+        
+        .fallback-msg {
+            position: absolute;
+            font-family: sans-serif;
+            color: #8C8273;
+            text-align: center;
+            padding: 20px;
+            z-index: 0;
+        }
+
+        /* Carousel Navigation & Text */
+        .carousel-indicators {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap; 
+            gap: 8px;
+            margin-top: 20px;
+        }
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #C8C1B4;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .dot.active {
+            background: var(--accent-warm);
+            transform: scale(1.3);
+        }
+        .carousel-description {
+            text-align: center;
+            font-style: italic;
+            color: var(--text-light);
+            margin-top: 15px;
+            font-size: 1.1em;
+            transition: opacity 0.3s ease;
+            min-height: 80px; 
+            padding: 0 15px;
+        }
+
+        .math-section {
+            background: #FFFFFF;
+            padding: 50px;
+            border-radius: 12px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.06);
+            border: 1px solid var(--border-color);
+            margin-top: 50px;
+        }
+        h2 { font-family: 'Trebuchet MS', sans-serif; color: var(--accent-warm); border-bottom: 2px solid var(--accent-warm); padding-bottom: 10px; margin-top: 40px; }
+        h3 { font-family: 'Trebuchet MS', sans-serif; color: #2C241B; margin-top: 30px; }
+        
+        .equation {
+            font-size: 1.1em;
+            background: var(--math-bg);
+            padding: 20px 30px;
+            border-radius: 8px;
+            border-left: 4px solid var(--accent-warm);
+            overflow-x: auto;
+            margin: 25px 0;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.02);
+        }
+
+        .sim-wrapper {
+            background: #231C15;
+            padding: 30px;
+            border-radius: 12px;
+            margin-top: 40px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+        }
+        .sim-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            justify-content: center;
+        }
+        .canvas-container {
+            flex: 1;
+            min-width: 320px;
+            max-width: 400px;
+            position: relative;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            background: #0A0806;
+            border-radius: 8px;
+            border: 1px solid #3A3228;
+        }
+        .canvas-label {
+            position: absolute;
+            top: 15px; left: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 6px 12px; border-radius: 4px;
+            font-family: sans-serif; font-size: 0.85em; font-weight: bold; color: #111;
+        }
+        .btn-container { text-align: center; margin-top: 25px; }
+        button.action-btn {
+            background: var(--accent-warm); color: white; border: none;
+            padding: 12px 30px; font-size: 1.1em; font-weight: bold;
+            border-radius: 30px; cursor: pointer; font-family: sans-serif;
+            transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(216, 125, 74, 0.4);
+        }
+        button.action-btn:hover { background: #BF6535; transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+
+<div class="blog-container">
+    
+    <h1>And this summarise my 缘分 with this course</h1>
+    <div class="subtitle">Many years later, as he looks back, Mr. Ng Li Yang was to remember that distant afternoon when they spending all their time on debugging the Arduino upon not knowing anything about Chaos.......</div>
+
+    <p>It was at those days when AI still dumbs, and we still young and naïve.</p>
+    <p>I told Yun Ten: “Let’s do something fun together for our Lab III(our self-designated project), I want to work on CHAOS THEORY! We can built a Double Pendulum and I’m sure it will looks impressive!”</p>
+    <p>Yun Ten: “Ok, I think that's interesting for it, lets check some literature and make it out........”</p>
+    <p>This was how our journey with Mr. Strogatz, Lyapunov, Poincaré, Lorenz started</p>
+
+    <!-- --- THE SWIPEABLE MEDIA BOX (14 SLIDES - PERFECTLY CONTAINED) --- -->
+    <div class="carousel-wrapper">
+        <div class="carousel-track" id="mediaTrack">
+            
+            <!-- Slide 1 -->
+            <div class="carousel-slide">
+                <video src="photo/build.MOV" controls style="position: relative; z-index: 1;" onerror="this.style.display='none'"></video>
+            </div>
+            <!-- Slide 2 -->
+            <div class="carousel-slide">
+                <video src="photo/preliminary.MOV" controls style="position: relative; z-index: 1;" onerror="this.style.display='none'"></video>
+            </div>
+            <!-- Slide 3 -->
+            <div class="carousel-slide">
+                <img src="photo/love affair.jpg" style="position: relative; z-index: 1;" onerror="this.style.display='none'">
+            </div>
+            <!-- Slide 4 -->
+            <div class="carousel-slide">
+                <img src="photo/proposal1.png" style="position: relative; z-index: 1;" onerror="this.style.display='none'">
+            </div>
+            <!-- Slide 5 -->
+            <div class="carousel-slide">
+                <img src="photo/proposal2.png" style="position: relative; z-index: 1;" onerror="this.style.display='none'">
+            </div>
+            <!-- Slide 6 -->
+            <div class="carousel-slide">
+                <img src="photo/proposal3.png" style="position: relative; z-index: 1;" onerror="this.style.display='none'">
+            </div>
+            <!-- Slide 7 -->
+            <div class="carousel-slide">
+                <img src="photo/proposal4.png" style="position: relative; z-index: 1;" onerror="this.style.display='none'">
+            </div>
+            <!-- Slide 8 -->
+            <div class="carousel-slide">
+                <video src="photo/working example.MOV" controls style="position: relative; z-index: 1;" onerror="this.style.display='none'"></video>
+            </div>
+            <!-- Slide 9 -->
+            <div class="carousel-slide">
+                <video src="photo/cnysong.MOV" controls style="position: relative; z-index: 1;" onerror="this.style.display='none'"></video>
+            </div>
+            <!-- Slide 10 -->
+            <div class="carousel-slide">
+                <img src="photo/poster presentation.JPG" style="position: relative; z-index: 1;" onerror="this.style.display='none'">
+            </div>
+            <!-- Slide 11 -->
+            <div class="carousel-slide">
+                <img src="photo/debug.jpg" style="position: relative; z-index: 1;" onerror="this.style.display='none'">
+            </div>
+            <!-- Slide 12 -->
+            <div class="carousel-slide">
+                
+                <video src="photo/final presentation.MOV" controls style="position: relative; z-index: 1;" onerror="this.style.display='none'"></video>
+            </div>
+            <!-- Slide 13 -->
+            <div class="carousel-slide">
+                <img src="photo/nearby trajectory.png" style="position: relative; z-index: 1;" onerror="this.style.display='none'">
+            </div>
+            <!-- Slide 14 -->
+            <div class="carousel-slide">
+                <img src="photo/phase plane.png" style="position: relative; z-index: 1;" onerror="this.style.display='none'">
+            </div>
+
+        </div>
+
+        <div class="carousel-indicators" id="carouselIndicators">
+            <span class="dot active" data-index="0"></span>
+            <span class="dot" data-index="1"></span>
+            <span class="dot" data-index="2"></span>
+            <span class="dot" data-index="3"></span>
+            <span class="dot" data-index="4"></span>
+            <span class="dot" data-index="5"></span>
+            <span class="dot" data-index="6"></span>
+            <span class="dot" data-index="7"></span>
+            <span class="dot" data-index="8"></span>
+            <span class="dot" data-index="9"></span>
+            <span class="dot" data-index="10"></span>
+            <span class="dot" data-index="11"></span>
+            <span class="dot" data-index="12"></span>
+            <span class="dot" data-index="13"></span>
+        </div>
+
+        <div class="carousel-description" id="carouselDesc"></div>
+    </div>
+    <!-- ----------------------------------- -->
+
+    <p>That's how I have my first date with this course, it was ended not very completely in both theory-wise and product-wise. But the theory still excite me, and have a big eager to look into it systematically, and very luckily in this last semester I get the chance to take on this class, all those memories come back when Dr. Lim mentioned about the concepts that I have look daftly 2 years ago, and being convey that the chaos theory turnout is a boring (and very hard) concept.......Ok Story and gossips aside, below are the maths and simulation:</p>
+
+    <!-- MATH SECTION -->
+    <div class="math-section">
+        <h2>Deriving the Chaos (The Physics of $\mathbb{R}^4$)</h2>
+        <p>To avoid the stale, overused Lorenz system, we turn to classical mechanics: <strong>The Frictionless Double Pendulum</strong>. It is a brilliant example of chaotic behavior emerging from simple Newtonian rules.</p>
+        
+        <h3>1. The Euler-Lagrange Formulation</h3>
+        <p>We begin by defining the positions of the two pendulum masses ($m_1, m_2$) with arm lengths ($l_1, l_2$) and angles ($\theta_1, \theta_2$) relative to the vertical axis:</p>
+        <div class="equation">
+            $$x_1 = l_1 \sin\theta_1, \quad y_1 = -l_1 \cos\theta_1$$
+            $$x_2 = l_1 \sin\theta_1 + l_2 \sin\theta_2, \quad y_2 = -l_1 \cos\theta_1 - l_2 \cos\theta_2$$
+        </div>
+
+        <p>The Lagrangian of the system, $L = T - V$, is formulated by substituting the time derivatives of these coordinates:</p>
+        
+        <div class="equation">
+            $$ L = \frac{1}{2}(m_1+m_2)l_1^2 \dot{\theta}_1^2 + \frac{1}{2}m_2 l_2^2 \dot{\theta}_2^2 + m_2 l_1 l_2 \dot{\theta}_1 \dot{\theta}_2 \cos(\theta_1-\theta_2) + (m_1+m_2)g l_1 \cos\theta_1 + m_2 g l_2 \cos\theta_2 $$
+        </div>
+
+        <h3>2. The Equations of Motion</h3>
+        <p>We apply the Euler-Lagrange equation to both angles: $\frac{d}{dt}\left(\frac{\partial L}{\partial \dot{\theta}_i}\right) - \frac{\partial L}{\partial \theta_i} = 0$. This yields a coupled system of second-order nonlinear differential equations. </p>
+        <p>To simulate this in our phase space ($\mathbb{R}^4$), we reduce it to a system of four first-order Ordinary Differential Equations (ODEs) by defining angular velocities $\omega_1 = \dot{\theta}_1$ and $\omega_2 = \dot{\theta}_2$:</p>
+
+        <div class="equation">
+            $$ \frac{d\theta_1}{dt} = \omega_1 $$
+            $$ \frac{d\theta_2}{dt} = \omega_2 $$
+            $$ \frac{d\omega_1}{dt} = \frac{-g(2m_1+m_2)\sin\theta_1 - m_2 g \sin(\theta_1-2\theta_2) - 2\sin(\theta_1-\theta_2)m_2(\omega_2^2 l_2 + \omega_1^2 l_1\cos(\theta_1-\theta_2))}{l_1(2m_1+m_2 - m_2\cos(2\theta_1-2\theta_2))} $$
+            $$ \frac{d\omega_2}{dt} = \frac{2\sin(\theta_1-\theta_2)(\omega_1^2 l_1(m_1+m_2) + g(m_1+m_2)\cos\theta_1 + \omega_2^2 l_2 m_2\cos(\theta_1-\theta_2))}{l_2(2m_1+m_2 - m_2\cos(2\theta_1-2\theta_2))} $$
+        </div>
+
+        <h3>3. The Chaotic Regime (The Stochastic Sea)</h3>
+        <p>When initialized near a horizontal state ($\theta_1 \approx \pi/2, \theta_2 \approx \pi/2$), the nonlinear coupling terms dominate. The system develops a positive Lyapunov exponent, meaning trajectories that start arbitrarily close to one another will diverge exponentially fast.</p>
+
+        <!-- SIMULATION SECTION -->
+        <div class="sim-wrapper">
+            <h2 style="color: #F0ECE1; border-color: #F0ECE1; margin-top: 0;">Visualizing The Butterfly Effect</h2>
+            <p style="color: #C8C1B4;">Below, we drop <strong>five independent pendulums</strong> simultaneously. We initiate them with an infinitesimally small difference: $\theta_2$ differs by only <strong>0.0001 radians</strong> between each color.</p>
+            <p style="color: #C8C1B4;">Notice how they remain synced for the first few seconds, before violently tearing apart in physical space. Yet, when projected onto the Phase Space canvas on the right, you can see all five trajectories tracing out the exact same mesmerizing geometric invariant set.</p>
+
+            <div class="sim-container">
+                <div class="canvas-container">
+                    <div class="canvas-label">Physical Space (x, y)</div>
+                    <canvas id="physicalCanvas" width="400" height="400"></canvas>
+                </div>
+                <div class="canvas-container">
+                    <div class="canvas-label">Phase Space ($\theta_2$ vs $\omega_2$)</div>
+                    <canvas id="phaseCanvas" width="400" height="400"></canvas>
+                </div>
+            </div>
+            
+            <div class="btn-container">
+                <button class="action-btn" onclick="resetSimulation()">Release the Chaos</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // ==========================================
+    // 1. CAROUSEL INTERACTION LOGIC
+    // ==========================================
+    const track = document.getElementById('mediaTrack');
+    const dots = document.querySelectorAll('.dot');
+    const desc = document.getElementById('carouselDesc');
+    
+    // The exact text sequences provided by you!
+    const descriptions = [
+        "I have not clue how to built it so I sneak in to the furniture factory and ask the tauke teach me to cut the wood", 
+        "and it looks legit!!", 
+        "The photo was taken at 20th May 2024, I was sat in the library, read upon the section \"Love Affair\" with '大城小爱' playing in the headphone. Most romantic thing I ever have, so I'd recorded down the scene", 
+        "These were the things we put in our proposal!(I believe our professor is impressive!)", 
+        ">These were the things we put in our proposal!(I believe our professor is impressive!)", 
+        ">These were the things we put in our proposal!(I believe our professor is impressive!)", 
+        ">These were the things we put in our proposal!(I believe our professor is impressive!)", 
+        "Upon 'pasang' Arduino", 
+        "We all suffering in lab in night. Playing some very ONG CNY song hope to gather good fortune!", 
+        "The day has come where we have to do the presentation(our face summarise everything we feel about our pendulum.)", 
+        "Yes and we still troubleshooting the Arduino at 15 min before our presentation", 
+        "Our only argument:\"See! It is pretty chaos!\"", 
+        "Try to argue that it exhibits chaos behaviour by plotting the nearby trajectories.....", 
+        "Plot the phase plane. Looks Chaos right!" 
+    ];
+
+    desc.innerHTML = descriptions[0];
+
+    track.addEventListener('scroll', () => {
+        let index = Math.round(track.scrollLeft / track.clientWidth);
+        dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
+        
+        if (desc.innerHTML !== descriptions[index]) {
+            desc.style.opacity = 0;
+            setTimeout(() => {
+                desc.innerHTML = descriptions[index];
+                desc.style.opacity = 1;
+            }, 150);
+        }
+    });
+
+    dots.forEach((dot, i) => {
+        dot.addEventListener('click', () => {
+            track.scrollTo({ left: track.clientWidth * i, behavior: 'smooth' });
+        });
+    });
+
+
+    // ==========================================
+    // 2. DOUBLE PENDULUM SIMULATION LOGIC
+    // ==========================================
+    const g = 9.81;
+    const m1 = 1.0;
+    const m2 = 1.0;
+    const phys_l1 = 1.0; 
+    const phys_l2 = 1.0; 
+    
+    const render_l1 = 85; 
+    const render_l2 = 85; 
+    
+    const dt = 0.01; 
+
+    const colors = ['#00d2ff', '#3a7bd5', '#f5af19', '#f12711', '#ff0084'];
+    let pendulums = [];
+
+    const physCanvas = document.getElementById('physicalCanvas');
+    const physCtx = physCanvas.getContext('2d');
+    const phaseCanvas = document.getElementById('phaseCanvas');
+    const phaseCtx = phaseCanvas.getContext('2d');
+
+    function resetSimulation() {
+        pendulums = [];
+        for (let i = 0; i < 5; i++) {
+            pendulums.push({
+                th1: Math.PI / 2,                  
+                th2: Math.PI / 2 + (i * 0.0001),   
+                w1: 0,
+                w2: 0,
+                color: colors[i],
+                history: [],       
+                prev_th2: null,    
+                prev_w2: null
+            });
+        }
+        
+        phaseCtx.fillStyle = '#0A0806';
+        phaseCtx.fillRect(0, 0, 400, 400);
+        
+        phaseCtx.strokeStyle = 'rgba(255,255,255,0.08)';
+        phaseCtx.lineWidth = 1;
+        phaseCtx.beginPath();
+        phaseCtx.moveTo(0, 200); phaseCtx.lineTo(400, 200);
+        phaseCtx.moveTo(200, 0); phaseCtx.lineTo(200, 400);
+        phaseCtx.stroke();
+    }
+
+    function derivatives(state) {
+        let {th1, th2, w1, w2} = state;
+        let d = th1 - th2;
+        let M = m1 + m2;
+        let den = (2*m1 + m2 - m2 * Math.cos(2*d));
+
+        let num1 = -g * (2*m1 + m2) * Math.sin(th1) - m2 * g * Math.sin(th1 - 2*th2) - 2 * Math.sin(d) * m2 * (w2*w2*phys_l2 + w1*w1*phys_l1*Math.cos(d));
+        let dw1 = num1 / (phys_l1 * den);
+
+        let num2 = 2 * Math.sin(d) * (w1*w1*phys_l1*M + g*M*Math.cos(th1) + w2*w2*phys_l2*m2*Math.cos(d));
+        let dw2 = num2 / (phys_l2 * den);
+
+        return { dth1: w1, dth2: w2, dw1: dw1, dw2: dw2 };
+    }
+
+    function rk4(p) {
+        let k1 = derivatives(p);
+        let p2 = { th1: p.th1 + 0.5*dt*k1.dth1, th2: p.th2 + 0.5*dt*k1.dth2, w1: p.w1 + 0.5*dt*k1.dw1, w2: p.w2 + 0.5*dt*k1.dw2 };
+        
+        let k2 = derivatives(p2);
+        let p3 = { th1: p.th1 + 0.5*dt*k2.dth1, th2: p.th2 + 0.5*dt*k2.dth2, w1: p.w1 + 0.5*dt*k2.dw1, w2: p.w2 + 0.5*dt*k2.dw2 };
+        
+        let k3 = derivatives(p3);
+        let p4 = { th1: p.th1 + dt*k3.dth1, th2: p.th2 + dt*k3.dth2, w1: p.w1 + dt*k3.dw1, w2: p.w2 + dt*k3.dw2 };
+        
+        let k4 = derivatives(p4);
+
+        p.th1 += (dt/6) * (k1.dth1 + 2*k2.dth1 + 2*k3.dth1 + k4.dth1);
+        p.th2 += (dt/6) * (k1.dth2 + 2*k2.dth2 + 2*k3.dth2 + k4.dth2);
+        p.w1 += (dt/6) * (k1.dw1 + 2*k2.dw1 + 2*k3.dw1 + k4.dw1);
+        p.w2 += (dt/6) * (k1.dw2 + 2*k2.dw2 + 2*k3.dw2 + k4.dw2);
+        
+        p.th1 = Math.atan2(Math.sin(p.th1), Math.cos(p.th1));
+        p.th2 = Math.atan2(Math.sin(p.th2), Math.cos(p.th2));
+    }
+
+    function draw() {
+        physCtx.clearRect(0, 0, physCanvas.width, physCanvas.height);
+        const cx = 200, cy = 200;
+        
+        phaseCtx.fillStyle = 'rgba(10, 8, 6, 0.02)';
+        phaseCtx.fillRect(0, 0, phaseCanvas.width, phaseCanvas.height);
+
+        pendulums.forEach(p => {
+            let x1 = cx + render_l1 * Math.sin(p.th1);
+            let y1 = cy + render_l1 * Math.cos(p.th1);
+            let x2 = x1 + render_l2 * Math.sin(p.th2);
+            let y2 = y1 + render_l2 * Math.cos(p.th2);
+
+            p.history.push({x: x2, y: y2});
+            if (p.history.length > 35) p.history.shift();
+
+            physCtx.beginPath();
+            if(p.history.length > 0) physCtx.moveTo(p.history[0].x, p.history[0].y);
+            for(let i=1; i<p.history.length; i++) physCtx.lineTo(p.history[i].x, p.history[i].y);
+            physCtx.strokeStyle = p.color;
+            physCtx.lineWidth = 2.5;
+            physCtx.stroke();
+
+            physCtx.beginPath();
+            physCtx.moveTo(cx, cy); physCtx.lineTo(x1, y1); physCtx.lineTo(x2, y2);
+            physCtx.strokeStyle = 'rgba(255,255,255,0.4)';
+            physCtx.lineWidth = 1.5;
+            physCtx.stroke();
+
+            physCtx.beginPath(); physCtx.arc(x1, y1, 5, 0, 2*Math.PI);
+            physCtx.fillStyle = '#FFF'; physCtx.fill();
+            physCtx.beginPath(); physCtx.arc(x2, y2, 7, 0, 2*Math.PI);
+            physCtx.fillStyle = p.color; physCtx.fill();
+
+            let px = ((p.th2 + Math.PI) / (2 * Math.PI)) * 400;
+            let py = 400 - ((p.w2 + 10) / 20) * 400;
+
+            if (p.prev_th2 !== null && p.prev_w2 !== null) {
+                let distance = Math.abs(p.th2 - p.prev_th2);
+                if (distance < Math.PI) {
+                    let prev_px = ((p.prev_th2 + Math.PI) / (2 * Math.PI)) * 400;
+                    let prev_py = 400 - ((p.prev_w2 + 10) / 20) * 400;
+                    
+                    phaseCtx.beginPath();
+                    phaseCtx.moveTo(prev_px, prev_py);
+                    phaseCtx.lineTo(px, py);
+                    phaseCtx.strokeStyle = p.color;
+                    phaseCtx.lineWidth = 1.5;
+                    phaseCtx.globalAlpha = 0.9;
+                    phaseCtx.stroke();
+                    phaseCtx.globalAlpha = 1.0;
+                }
+            }
+            p.prev_th2 = p.th2;
+            p.prev_w2 = p.w2;
+        });
+    }
+
+    function animate() {
+        for(let k=0; k<2; k++){
+            pendulums.forEach(p => rk4(p));
+        }
+        draw();
+        requestAnimationFrame(animate);
+    }
+
+    resetSimulation();
+    animate();
+</script>
+
+</body>
+</html>
